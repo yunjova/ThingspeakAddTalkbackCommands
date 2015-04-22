@@ -56,8 +56,8 @@
         //document.getElementById("responseText") = xhr.responseText; // Syntax error.
       }
     }
-    xhr.open (oFormElement.method, oFormElement.action, true);
-    xhr.send (new FormData (oFormElement));
+    xhr.open(oFormElement.method, oFormElement.action, true);
+    xhr.send(new FormData(oFormElement));
     
     document.getElementById("sentQueriesLog").innerHTML +=
             "<br>"
