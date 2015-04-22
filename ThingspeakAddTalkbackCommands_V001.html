@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+  <!--
+    Created: 2015-04-21 Johan Vanroose.
+  -->
+  <head>
+    <title>Add Talkback commands to Thingspeak.</title>
+  <script>
+  "use strict"; // With strict mode, you can not, for example, use undeclared variables.
+  function incrementPositionCounter() {
+    //alert(document.getElementById('Form0').elements.namedItem("position").value);
+    document.getElementById('Form0').elements.namedItem("position").value =
+            parseInt(document.getElementById('Form0').elements.namedItem("position").value) + 1;
+    //alert(document.getElementById('Form0').elements.namedItem("position").value);
+  }
+
+  // I have choosen to keep some "common" variables replicated in each form. So copy over.
+  function updateAllForms() {
+    //document.getElementById('input').value = parseInt(document.getElementById('input').value) + 1;
+    var formsCollection = document.getElementsByTagName("form");
+    for(var i = 0; i < formsCollection.length; i++) {
+      //alert(formsCollection[i].elements.namedItem("position").value);
+      /* Use only one field for the counter. So next is commented out (gives a counter per form).
+      formsCollection[i].elements.namedItem("position").value =
+              parseInt(formsCollection[i].elements.namedItem("position").value) + 1;
+      */
+      formsCollection[i].elements.namedItem("position").value =
+              document.getElementById('Form0').elements.namedItem("position").value;
+      //alert(formsCollection[i].elements.namedItem("position").value);
+
+      formsCollection[i].elements.namedItem("api_key").value =
+              document.getElementById('Form0').elements.namedItem("api_key").value;
+    }
+  }
+
+    // Must become: https://api.thingspeak.com/talkbacks/TALKBACK_ID/commands
+    function constructFormAction(oFormElement) {
+      oFormElement.action = "https://api.thingspeak.com/talkbacks/"
+              + document.getElementById('Form0').elements.namedItem("talkback_id").value
+              + "/commands";
+    }
+
+  function submitForm(oFormElement) {
+
+    constructFormAction(oFormElement);
+    //alert(oFormElement.action);
+    
+    updateAllForms();
+
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange=function() {
+      if (xhr.readyState==4 && xhr.status==200) {
+        //document.getElementById("responseText").innerHTML = xhr.responseXML; // Shows nothing.
+        document.getElementById("responseText").innerHTML = xhr.responseText; // Shows raw response, so also the html tags.
+        //document.getElementById("responseText").innerHTML = xhr.responseText.innerHTML; // Undefined.
+        //document.getElementById("responseText") = xhr.responseText; // Syntax error.
+      }
+    }
+    xhr.open (oFormElement.method, oFormElement.action, true);
+    xhr.send (new FormData (oFormElement));
+    
+    document.getElementById("sentQueriesLog").innerHTML +=
+            "<br>"
+            + oFormElement.action
+            + " " + oFormElement.method
+            + " " + oFormElement.elements.namedItem("api_key").value
+            + " " + document.getElementById('Form0').elements.namedItem("talkback_id").value
+            + " " + oFormElement.elements.namedItem("position").value
+            + " " + oFormElement.elements.namedItem("command_string").value
+            ;
+
+    incrementPositionCounter();
+
+    return false;
+  }
+
+  function ClearSentQueriesLog() {
+    document.getElementById("sentQueriesLog").innerHTML = "";
+  }
+
+  </script>
+  </head>
+
+  <body>
+    <h1>Add Talkback commands to Thingspeak.</h1>
+      <p><b>An easy way to add Talkback commands to <a target="Thingspeak" href="https://thingspeak.com/">Thingspeak</a>.</b>
+      <p>Created: 2015-04-21 Johan Vanroose.
+      <br>To do: The response text needs to be handled in a proper way (get rid of the HTML tags in the output).
+      <br>To do: Supports other type of commands like UPDATE, PUT, DELETE. See the <a target="Thingspeak" href="https://thingspeak.com/docs/talkback">Thingspeak documentation of Talkback</a>.
+<hr>
+<p>
+<p>I wanted a easy way to add Thingspeak Talkback commands. So I created this page that uses AJAX to stay on the page after a command launch.
+<p>Set your Thingspeak credentials.
+<br>The position is auto-incremented and you can set it to a certain value (after which it will increment again).
+<p>Modify the commands as needed. (Add more forms to this page to have easy access to more commands.)
+
+<hr>
+<p>
+<form id="Form0">
+  API Key: <input type="text" name="api_key"value="API Key">
+  TalkBack ID: <input type="text" name="talkback_id" size="7" value="TalkBack ID">
+  Position: <input type="text" name="position" size="3" value="1">
+</form>
+
+<!-- ----------------------------------------------------------------------- -->
+<!-- ----------------------------------------------------------------------- -->
+<!-- ----------------------------------------------------------------------- -->
+<!-- Repeat forms when you want to have easy access to more commands.
+-->
+<p>
+<form method="POST" action="">
+  <input type="hidden" name="api_key"value="">
+  <input type="hidden" name="position" size="3" value="1">
+  Command string: <input type="text" name="command_string" size="16" value="TURN_ON">
+  <button type="button" onclick="submitForm(this.form)">Send to Talkback</button>
+</form>
+
+<p>
+<form method="POST" action="">
+  <input type="hidden" name="api_key"value="">
+  <input type="hidden" name="position" size="3" value="1">
+  Command string: <input type="text" name="command_string" size="16" value="TURN_OFF">
+  <button type="button" onclick="submitForm(this.form)">Send to Talkback</button>
+</form>
+
+<p>
+<form method="POST" action="">
+  <input type="hidden" name="api_key"value="">
+  <input type="hidden" name="position" size="3" value="1">
+  Command string: <input type="text" name="command_string" size="16" value="">
+  <button type="button" onclick="submitForm(this.form)">Send to Talkback</button>
+</form>
+
+<!-- ----------------------------------------------------------------------- -->
+<!-- ----------------------------------------------------------------------- -->
+<!-- ----------------------------------------------------------------------- -->
+<hr>
+<p>Sent Queries:
+  <button type="button" onclick="ClearSentQueriesLog()">Clear Sent Queries Log</button>
+<br><span id="sentQueriesLog"></span></p>
+<hr>
+<p>ResponseText (of most recent query):
+<p><span id="responseText"></span></p> 
+<hr>
+Copyright: Johan Vanroose. License: <a target="" href="https://tldrlegal.com/license/mit-license">MIT License</a>
+
+
+  </body>
+</html>
